@@ -8,7 +8,7 @@ int main(void) {
 
     InitWindow(screenWidth, screenHeight, "Physics Simulation");
 
-    Color colors[COLOR_COUNT] = {
+    const Color colors[COLOR_COUNT] = {
         RAYWHITE, YELLOW, GOLD, ORANGE, PINK, RED, MAROON, GREEN, LIME, DARKGREEN,
         SKYBLUE, BLUE, DARKBLUE, PURPLE, VIOLET, DARKPURPLE, BEIGE, BROWN, DARKBROWN,
         LIGHTGRAY, GRAY, DARKGRAY, BLACK };
@@ -16,7 +16,9 @@ int main(void) {
     Rectangle colorsRecs[COLOR_COUNT] = { 0 };
 
     for (int i = 0; i < COLOR_COUNT; i++) {
-        colorsRecs[i].x = 10 + 30.0f * i + 2 * i;
+        colorsRecs[i].x = 10 + 30.0f
+                        * (float)i + 2
+                        * (float)i;
         colorsRecs[i].y = 10;
         colorsRecs[i].width = 30;
         colorsRecs[i].height = 30;
@@ -25,15 +27,15 @@ int main(void) {
     int colorSelected = 0;
     int colorSelectedPrev = colorSelected;
     int colorMouseHover = 0;
-    float brushSize = 20.0f;
+    float brushSize = 10.0f;
     bool mouseWasPressed = false;
 
-    Rectangle buttonSaveRec = { 750, 10, 40, 30 };
+    const Rectangle buttonSaveRec = { 750, 10, 40, 30 };
     bool buttonSaveMouseHover = false;
     bool showSaveMessage = false;
     int saveMessageCounter = 0;
 
-    RenderTexture2D target = LoadRenderTexture(screenWidth, screenHeight);
+    const RenderTexture2D target = LoadRenderTexture(screenWidth, screenHeight);
 
     BeginTextureMode(target);
     ClearBackground(colors[0]);
@@ -42,7 +44,7 @@ int main(void) {
     SetTargetFPS(120);
 
     while (!WindowShouldClose()) {
-        Vector2 mousePos = GetMousePosition();
+        const Vector2 mousePos = GetMousePosition();
 
         if (IsKeyPressed(KEY_RIGHT)) colorSelected++;
         else if (IsKeyPressed(KEY_LEFT)) colorSelected--;
