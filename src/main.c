@@ -1,18 +1,25 @@
 #include <stdio.h>
-
+#include <stdlib.h>
 #include <raylib.h>
 
-int main(void) {
-    const int width = 800, height = 600;
-    const char* title = "Physics Engine";
+#include <typedef.h>
 
+
+
+int main(void) {
+    i16 width = GetScreenWidth();
+    i16 height = GetScreenHeight();
+    const static char *title = "Physics Simulation";
+
+    fprintf(stdout, "Project Initialising");
+
+    SetTargetFPS(30);
     InitWindow(width, height, title);
     while (!WindowShouldClose()) {
         BeginDrawing();
-            ClearBackground(RAYWHITE);
-            DrawText("Hello World!", 190, 200, 20, ORANGE);
+            ClearBackground(BLACK);
         EndDrawing();
     }
     CloseWindow();
-    return 0;
+    return EXIT_SUCCESS;
 }

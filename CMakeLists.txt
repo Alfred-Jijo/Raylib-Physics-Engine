@@ -4,6 +4,7 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/src/*.c")
+file(GLOB_RECURSE PROJECT_HEADERS CONFIGURE_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/include/*.h")
 
 # Add include directory
 include_directories(${CMAKE_SOURCE_DIR}/include)
@@ -22,7 +23,7 @@ else()
 endif()
 
 # Add your source files
-add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} lib/ds.c)
+add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS} lib/ds.c)
 
 # Link raylib and any other libraries in lib folder
 target_link_libraries(${PROJECT_NAME} ${RAYLIB_LIB})
