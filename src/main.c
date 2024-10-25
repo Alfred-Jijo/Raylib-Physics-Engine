@@ -1,31 +1,25 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <raylib.h>
 
-#include <typedef.h>
-
-#define COLOUR_COUNT 26
+#define COLOR_COUNT 23
 
 int main(void) {
-    u16 width = GetScreenWidth();
-    u16 height = GetScreenHeight();
-    const static char *title = "Physics Simulation";
+    const int screenWidth = GetScreenWidth();
+    const int screenHeight = GetScreenHeight();
 
-    fprintf(stdout, "Project Initialising");
+    InitWindow(screenWidth, screenHeight, "Physics Simulation");
 
-    Color colours[COLOUR_COUNT] = {
-        LIGHTGRAY, GRAY, DARKGRAY, YELLOW, GOLD, ORANGE, PINK, RED, MAROON,
-        GREEN, LIME, DARKGREEN, SKYBLUE, BLUE, DARKBLUE, PURPLE, VIOLET,
-        DARKPURPLE, BEIGE, BROWN, DARKBROWN, WHITE, BLACK, BLANK, MAGENTA, RAYWHITE
-    };
+    Color colors[COLOR_COUNT] = {
+        RAYWHITE, YELLOW, GOLD, ORANGE, PINK, RED, MAROON, GREEN, LIME, DARKGREEN,
+        SKYBLUE, BLUE, DARKBLUE, PURPLE, VIOLET, DARKPURPLE, BEIGE, BROWN, DARKBROWN,
+        LIGHTGRAY, GRAY, DARKGRAY, BLACK };
 
-    Rectangle colourRects[COLOUR_COUNT] = {0};
+    Rectangle colorsRecs[COLOR_COUNT] = { 0 };
 
-    for (u8 i = 0; i < COLOUR_COUNT; i++) {
-        colourRects[i].x = 10 + 30.f*i + 2*i;
-        colourRects[i].y = 10;
-        colourRects[i].width = 30;
-        colourRects[i].height = 30;
+    for (int i = 0; i < COLOR_COUNT; i++) {
+        colorsRecs[i].x = 10 + 30.0f * i + 2 * i;
+        colorsRecs[i].y = 10;
+        colorsRecs[i].width = 30;
+        colorsRecs[i].height = 30;
     }
 
     int colorSelected = 0;
@@ -39,20 +33,122 @@ int main(void) {
     bool showSaveMessage = false;
     int saveMessageCounter = 0;
 
-    RenderTexture2D canvas = LoadRenderTexture(width, height);
+    RenderTexture2D target = LoadRenderTexture(screenWidth, screenHeight);
 
-    BeginTextureMode(canvas);
-    ClearBackground(RAYWHITE);
+    BeginTextureMode(target);
+    ClearBackground(colors[0]);
     EndTextureMode();
 
-    SetTargetFPS(60);
-    InitWindow(width, height, title);
+    SetTargetFPS(120);
+
     while (!WindowShouldClose()) {
+        Vector2 mousePos = GetMousePosition();
+
+        if (IsKeyPressed(KEY_RIGHT)) colorSelected++;
+        else if (IsKeyPressed(KEY_LEFT)) colorSelected--;
+
+        if (colorSelected >= COLOR_COUNT) colorSelected = COLOR_COUNT - 1;
+        else if (colorSelected < 0) colorSelected = 0;
+
+        for (int i = 0; i < COLOR_COUNT; i++) {
+            if (CheckCollisionPointRec(mousePos, colorsRecs[i])) {
+                colorMouseHover = i;
+                break;
+            } else colorMouseHover = -1;
+        }
+
+        if ((colorMouseHover >= 0) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            colorSelected = colorMouseHover;
+            colorSelectedPrev = colorSelected;
+        }
+
+        brushSize += GetMouseWheelMove() * 5;
+        if (brushSize < 2) brushSize = 2;
+        if (brushSize > 50) brushSize = 50;
+
+        if (IsKeyPressed(KEY_C)) {
+            BeginTextureMode(target);
+            ClearBackground(colors[0]);
+            EndTextureMode();
+        }
+
+        if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) || (GetGestureDetected() == GESTURE_DRAG)) {
+            BeginTextureMode(target);
+            if (mousePos.y > 50) DrawCircle((int)mousePos.x, (int)mousePos.y, brushSize, colors[colorSelected]);
+            EndTextureMode();
+        }
+
+        if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
+            if (!mouseWasPressed) {
+                colorSelectedPrev = colorSelected;
+                colorSelected = 0;
+            }
+
+            mouseWasPressed = true;
+
+            BeginTextureMode(target);
+            if (mousePos.y > 50) DrawCircle((int)mousePos.x, (int)mousePos.y, brushSize, colors[0]);
+            EndTextureMode();
+        } else if (IsMouseButtonReleased(MOUSE_BUTTON_RIGHT) && mouseWasPressed) {
+            colorSelected = colorSelectedPrev;
+            mouseWasPressed = false;
+        }
+
+        if (CheckCollisionPointRec(mousePos, buttonSaveRec)) buttonSaveMouseHover = true;
+        else buttonSaveMouseHover = false;
+
+        if ((buttonSaveMouseHover && IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) || IsKeyPressed(KEY_S)) {
+            Image image = LoadImageFromTexture(target.texture);
+            ImageFlipVertical(&image);
+            ExportImage(image, "my_amazing_texture_painting.png");
+            UnloadImage(image);
+            showSaveMessage = true;
+        }
+
+        if (showSaveMessage) {
+            saveMessageCounter++;
+            if (saveMessageCounter > 240) {
+                showSaveMessage = false;
+                saveMessageCounter = 0;
+            }
+        }
+
         BeginDrawing();
-            f32 mouseCircleRadius = 2.0f;
-            DrawCircle(GetMousePosition().x,GetMousePosition().y,mouseCircleRadius,WHITE);
+
+        ClearBackground(RAYWHITE);
+
+        DrawTextureRec(target.texture, (Rectangle) { 0, 0, (float)target.texture.width, (float)-target.texture.height }, (Vector2) { 0, 0 }, WHITE);
+
+        if (mousePos.y > 50) {
+            if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) DrawCircleLines((int)mousePos.x, (int)mousePos.y, brushSize, GRAY);
+            else DrawCircle(GetMouseX(), GetMouseY(), brushSize, colors[colorSelected]);
+        }
+
+        DrawRectangle(0, 0, GetScreenWidth(), 50, RAYWHITE);
+        DrawLine(0, 50, GetScreenWidth(), 50, LIGHTGRAY);
+
+        for (int i = 0; i < COLOR_COUNT; i++) DrawRectangleRec(colorsRecs[i], colors[i]);
+        DrawRectangleLines(10, 10, 30, 30, LIGHTGRAY);
+
+        if (colorMouseHover >= 0) DrawRectangleRec(colorsRecs[colorMouseHover], Fade(WHITE, 0.6f));
+
+        DrawRectangleLinesEx((Rectangle){ colorsRecs[colorSelected].x - 2, colorsRecs[colorSelected].y - 2,
+                             colorsRecs[colorSelected].width + 4, colorsRecs[colorSelected].height + 4 }, 2, BLACK);
+
+        DrawRectangleLinesEx(buttonSaveRec, 2, buttonSaveMouseHover ? RED : BLACK);
+        DrawText("SAVE!", 755, 20, 10, buttonSaveMouseHover ? RED : BLACK);
+
+        if (showSaveMessage) {
+            DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(RAYWHITE, 0.8f));
+            DrawRectangle(0, 150, GetScreenWidth(), 80, BLACK);
+            DrawText("IMAGE SAVED:  stupid looking picture.png", 150, 180, 20, RAYWHITE);
+        }
+
         EndDrawing();
     }
+
+    UnloadRenderTexture(target);
     CloseWindow();
-    return EXIT_SUCCESS;
+
+    return 0;
 }
