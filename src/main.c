@@ -39,7 +39,7 @@ int main(void) {
     u8 use_mouse_as_gravity_point = 0;
 
     // Gravity Calc vars
-    Vec2 gravity_point = (Vector2) { screen_width/ 2, screen_height / 2 };
+    Vec2 gravity_point = (Vec2) { screen_width/ 2, screen_height / 2 };
     Vec2 scaled_gravity_point;
     Vec2 move;
     double distance;
@@ -57,7 +57,7 @@ int main(void) {
         dot_array[i].velocity = Vector2Zero;
     }
 
-    SetTargetFPS(60);
+    SetTargetFPS(120);
 
     // Main Sim Loop
     while (!WindowShouldClose()) {
@@ -83,8 +83,33 @@ int main(void) {
         */
         // Toggle if the gravity point is based on the mouse position or not
         if (IsKeyReleased(KEY_P)) {
-            use_mouse_as_gravity_point = (uint8_t)(use_mouse_as_gravity_point == 0);
-            gravity_point = Vector2{screen_width / 2, screen_height / 2};
+            use_mouse_as_gravity_point = (u8)(use_mouse_as_gravity_point == 0);
+            gravity_point = (Vec2) {screen_width / 2, screen_height / 2};
+        }
+
+        // Update Loop
+        if (use_mouse_as_gravity_point) {
+            gravity_point = GetMousePosition();
+        }
+        else {
+            // Horizontal movement
+            if (IsKeyDown(KEY_A)) {
+                gravity_point.x -= gravity_point_speed * GetFrameTime();
+            }
+            if (IsKeyDown(KEY_D)) {
+                gravity_point.x += gravity_point_speed * GetFrameTime();
+            }
+            // Vertical movement
+            if (IsKeyDown(KEY_W)) {
+                gravity_point.y -= gravity_point_speed * GetFrameTime();
+            }
+            if (IsKeyDown(KEY_S)) {
+                gravity_point.y += gravity_point_speed * GetFrameTime();
+            }
+            // Go back to default position
+            if (IsKeyDown(KEY_H)) {
+                gravity_point.x = screen_width / 2;
+            }
         }
     }
 
